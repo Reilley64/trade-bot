@@ -3,6 +3,8 @@ import "reflect-metadata";
 import * as cors from "cors";
 import * as cron from "node-cron";
 import * as express from "express";
+import * as https from "https";
+import * as fs from "fs";
 import { createConnection } from "typeorm";
 import { Request, Response } from "express";
 import { Order } from "./entity/Order";
@@ -42,5 +44,11 @@ createConnection({
         res.json(await transactionRepository.save(transaction));
     })
 
-    app.listen(8080);
+    https
+        .createServer({
+            key: fs.readFileSync('./key.pem'),
+            cert: fs.readFileSync('./cert.pem'),
+            passphrase: process.env.PEM_PHRASE,
+        }, app)
+        .listen(8080);
 }).catch(error => console.log(error));

@@ -1,4 +1,4 @@
-GET https://cloud.iexapis.com/stable/crypto/XRPAUD/quote?token=pk_7f97bc44a96d488d827a7b12250c2a1d
+GET https://localhost:8080/orders
 Accept: application/json
 
 ###

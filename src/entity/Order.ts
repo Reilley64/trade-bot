@@ -23,4 +23,12 @@ export class Order extends Base {
     @OneToOne(() => Transaction, { cascade: true })
     @JoinColumn()
     transaction: Transaction;
+
+    subtotal(): number {
+        return this.price * this.quantity;
+    }
+
+    total(): number {
+        return (this.price * this.quantity) + this.fee;
+    }
 }

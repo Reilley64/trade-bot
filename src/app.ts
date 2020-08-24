@@ -32,11 +32,11 @@ createConnection({
     const transactionRepository = connection.getRepository(Transaction);
 
     app.get("/orders", async (req: Request, res: Response) => {
-        res.json(await orderRepository.find());
+        res.json(await orderRepository.find({ order: { createdAt: 'DESC' }}));
     })
 
     app.get("/transactions", async (req: Request, res: Response) => {
-        res.json(await transactionRepository.find());
+        res.json(await transactionRepository.find({ order: { createdAt: 'DESC' }}));
     })
 
     app.post("/transactions", async (req: Request, res: Response) => {

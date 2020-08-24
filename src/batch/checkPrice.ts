@@ -12,18 +12,19 @@ export async function checkPrice(connection: Connection): Promise<void> {
 
     const mode = (await settingRepository.findOne({ key: 'mode' }));
     const quote = (await axios.get(`https://cloud.iexapis.com/stable/crypto/XRPAUD/quote?token=${process.env.IEXCLOUD_API_KEY}`)).data;
-    console.log(`XRP is at ${quote.latestPrice}`);
 
     if (mode.value === 'buy') {
-        if (quote.latestPrice <= (quote.low + ((1 / 100) * quote.low))) {
+        console.log(`XRP is at ${quote.latestPrice}, trying to buy at ${parseFloat(quote.low) + ((.5 / 100) * parseFloat(quote.low))}`);
+
+        if (parseFloat(quote.latestPrice) <= parseFloat(quote.low) + ((.5 / 100) * parseFloat(quote.low))) {
             const { balance } = await transactionRepository.createQueryBuilder("transaction").select("SUM(transaction.amount)", "balance").getRawOne();
 
             const order = new Order();
             order.direction = OrderDirection.BUY;
             order.price = quote.latestPrice;
-            order.fee = (1 / 100) * balance;
-            order.quantity = (balance - order.fee) / order.price;
-            order.transaction = new Transaction(`Buy XRP at ${order.price}`, ((order.price * order.quantity) + order.fee) * -1);
+            order.fee = (.1 / 100) * (balance - (balance / 4));
+            order.quantity = ((balance - (balance / 4)) - order.fee) / order.price;
+            order.transaction = new Transaction(`Buy XRP at ${order.price}`, order.total() * -1);
             await orderRepository.save(order);
 
             mode.value = 'sell';
@@ -31,13 +32,15 @@ export async function checkPrice(connection: Connection): Promise<void> {
         }
     } else if (mode.value === 'sell') {
         const latestOrder = await orderRepository.findOne({ order: { createdAt: 'DESC' }});
-        if (quote.latestPrice * latestOrder.quantity >= ((latestOrder.price * latestOrder.quantity) * 1.5) + latestOrder.fee) {
+        console.log(`XRP is at ${quote.latestPrice}, trying to sell at ${((latestOrder.subtotal() + ((1.5 / 100) * latestOrder.subtotal())) + latestOrder.fee) / latestOrder.quantity}`);
+
+        if (quote.latestPrice * latestOrder.quantity >= (latestOrder.subtotal() + ((1.5 / 100) * latestOrder.subtotal())) + latestOrder.fee) {
             const order = new Order();
             order.direction = OrderDirection.SELL;
             order.price = quote.latestPrice;
-            order.fee = (1 / 100) * (quote.latestPrice * latestOrder.quantity);
+            order.fee = (.1 / 100) * (quote.latestPrice * latestOrder.quantity);
             order.quantity = latestOrder.quantity;
-            order.transaction = new Transaction(`Sell XRP at ${order.price}`, (order.price * order.quantity) + order.fee);
+            order.transaction = new Transaction(`Sell XRP at ${order.price}`, order.subtotal() - order.fee);
             await orderRepository.save(order);
 
             mode.value = 'buy';

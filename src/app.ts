@@ -22,7 +22,8 @@ createConnection({
     logging: false,
     entities: [ "src/entity/**/*.ts" ],
 }).then(async connection => {
-    cron.schedule('*/5 * * * *', () => checkPrice(connection));
+    // cron.schedule('*/5 * * * *', () => checkPrice(connection));
+    await checkPrice(connection);
 
     const app = express();
     app.use(cors());

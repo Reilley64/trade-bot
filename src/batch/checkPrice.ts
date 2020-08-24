@@ -1,10 +1,9 @@
-import axios from "axios";
 import { Connection } from "typeorm";
 
 import { Setting } from "../entity/Setting";
 import { Order, OrderDirection } from "../entity/Order";
 import { Transaction } from "../entity/Transaction";
-import { getKline, getPrice } from "../client/binance";
+import { get24hrOHLC } from "../client/binance";
 
 export async function checkPrice(connection: Connection): Promise<void> {
     const orderRepository = connection.getRepository(Order);
@@ -12,18 +11,17 @@ export async function checkPrice(connection: Connection): Promise<void> {
     const transactionRepository = connection.getRepository(Transaction);
 
     const mode = (await settingRepository.findOne({key: 'mode'}));
-    const price = (await getPrice()).data.price;
-    const low = (await getKline()).data[0][3];
+    const quote = await get24hrOHLC();
 
     if (mode.value === 'buy') {
-        console.log(`XRP is at ${price}, trying to buy at ${parseFloat(low) + ((.5 / 100) * parseFloat(low))}`);
+        console.log(`XRP is at ${quote.lastPrice}, trying to buy at ${parseFloat(quote.lowPrice) + ((.5 / 100) * parseFloat(quote.lowPrice))}`);
 
-        if (parseFloat(price) <= parseFloat(low) + ((.5 / 100) * parseFloat(low))) {
+        if (parseFloat(quote.lastPrice) <= parseFloat(quote.lowPrice) + ((.5 / 100) * parseFloat(quote.lowPrice))) {
             const {balance} = await transactionRepository.createQueryBuilder("transaction").select("SUM(transaction.amount)", "balance").getRawOne();
 
             const order = new Order();
             order.direction = OrderDirection.BUY;
-            order.price = price;
+            order.price = quote.lastPrice;
             order.fee = (.1 / 100) * (balance - (balance / 4));
             order.quantity = ((balance - (balance / 4)) - order.fee) / order.price;
             order.transaction = new Transaction(`Buy XRP at ${order.price}`, order.total() * -1);
@@ -34,13 +32,13 @@ export async function checkPrice(connection: Connection): Promise<void> {
         }
     } else if (mode.value === 'sell') {
         const latestOrder = await orderRepository.findOne({order: {createdAt: 'DESC'}});
-        console.log(`XRP is at ${price}, trying to sell at ${((latestOrder.subtotal() + ((1.5 / 100) * latestOrder.subtotal())) + +latestOrder.fee) / latestOrder.quantity}`);
+        console.log(`XRP is at ${quote.lastPrice}, trying to sell at ${((latestOrder.subtotal() + ((1.5 / 100) * latestOrder.subtotal())) + +latestOrder.fee) / latestOrder.quantity}`);
 
-        if (price * latestOrder.quantity >= (latestOrder.subtotal() + ((1.5 / 100) * latestOrder.subtotal())) + +latestOrder.fee) {
+        if (quote.lastPrice * latestOrder.quantity >= (latestOrder.subtotal() + ((1.5 / 100) * latestOrder.subtotal())) + +latestOrder.fee) {
             const order = new Order();
             order.direction = OrderDirection.SELL;
-            order.price = price;
-            order.fee = (.1 / 100) * (price * latestOrder.quantity);
+            order.price = quote.lastPrice;
+            order.fee = (.1 / 100) * (quote.lastPrice * latestOrder.quantity);
             order.quantity = latestOrder.quantity;
             order.transaction = new Transaction(`Sell XRP at ${order.price}`, order.subtotal() - order.fee);
             await orderRepository.save(order);

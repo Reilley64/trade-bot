@@ -1,4 +1,4 @@
-GET https://api.binance.com/api/v3/klines?symbol=XRPAUD&interval=1d&limit=1
+GET https://api.binance.com/api/v3/avgPrice?symbol=XRPAUD
 X-MBX-APIKEY: nmEdn4sH78CmXUg7FsGZYYBQFMRltH2ocOxkLpaJE7eoEsJSMSg1HFBvvbcwKlzW
 
 ###

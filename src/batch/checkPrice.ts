@@ -23,7 +23,7 @@ export async function checkPrice(connection: Connection): Promise<void> {
       trade.from = 'usdt';
       trade.to = 'xrp';
       trade.rate = quote.lastPrice;
-      trade.quantity = usdtBalance / 4;
+      trade.quantity = usdtBalance - (usdtBalance / 4);
       trade.fee = (0.1 / 100) * trade.total();
       await tradeRepository.save(trade);
 

@@ -40,5 +40,5 @@ createConnection({
     res.json(await snapshotRepository.find({ order: { createdAt: 'DESC' } }));
   });
 
-  app.listen(5000);
+  app.listen(80);
 }).catch((error) => console.log(error));

@@ -1,11 +1,12 @@
-import { Column, Entity } from "typeorm";
-import { Base } from "./Base";
+import { Column, Entity } from 'typeorm';
+
+import { Base } from './Base';
 
 @Entity()
 export class Setting extends Base {
-    @Column()
-    key: string;
+  @Column()
+  key: string;
 
-    @Column()
-    value: string;
+  @Column()
+  value: string;
 }

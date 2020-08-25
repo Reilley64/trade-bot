@@ -1,4 +1,3 @@
-GET https://api.binance.com/api/v3/avgPrice?symbol=XRPAUD
-X-MBX-APIKEY: nmEdn4sH78CmXUg7FsGZYYBQFMRltH2ocOxkLpaJE7eoEsJSMSg1HFBvvbcwKlzW
+GET https://api.binance.com/api/v3/ticker/24hr?symbol=XRPUSDT
 
 ###

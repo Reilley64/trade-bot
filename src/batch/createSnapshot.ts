@@ -11,6 +11,6 @@ export async function createSnapshot(connection: Connection): Promise<void> {
   const snapshot = new Snapshot();
   snapshot.usdt = (await tradeRepository.findBalance('usdt')).balance;
   snapshot.xrp = (await tradeRepository.findBalance('xrp')).balance;
-  snapshot.xrpusdtRate = (await get24hrOHLC()).latestPrice;
+  snapshot.xrpusdtRate = (await get24hrOHLC()).lastPrice;
   await snapshotRepository.save(snapshot);
 }

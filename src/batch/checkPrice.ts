@@ -33,7 +33,7 @@ export async function checkPrice(connection: Connection): Promise<void> {
   } else if (mode.value === 'sell') {
     const xrpBalance = (await tradeRepository.findBalance('xrp')).balance;
     const latestTrade = await tradeRepository.findOne({ order: { createdAt: 'DESC' } });
-    const rateToSell = (+latestTrade.rate + ((1.5 / 100) * +latestTrade.rate)) + (+latestTrade.fee / xrpBalance);
+    const rateToSell = (+latestTrade.rate + (0.01 * +latestTrade.rate)) + (+latestTrade.fee / xrpBalance);
     console.log(`XRP is at ${quote.lastPrice}, trying to sell at ${rateToSell}`);
 
     if (quote.lastPrice >= rateToSell) {

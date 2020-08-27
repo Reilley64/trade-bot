@@ -21,7 +21,7 @@ createConnection({
   synchronize: true,
   entities: ['src/entity/**/*.ts'],
 }).then(async (connection) => {
-  cron.schedule('*/5 * * * *', () => checkPrice(connection));
+  cron.schedule('*/1 * * * *', () => checkPrice(connection));
   cron.schedule('0 0 * * *', () => createSnapshot(connection));
 
   const app = express();

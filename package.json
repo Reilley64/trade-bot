@@ -26,6 +26,7 @@
    },
    "scripts": {
       "start": "ts-node src/app.ts",
-      "lint": "eslint . --ext .ts --fix"
+      "lint": "eslint --ext .ts src/ --fix",
+      "deploy": "sudo docker build -t reilley/trade-bot . && sudo docker push reilley/trade-bot:latest"
    }
 }

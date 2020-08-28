@@ -21,7 +21,7 @@ createConnection({
   synchronize: true,
   entities: ['src/entity/**/*.ts'],
 }).then(async (connection) => {
-  cron.schedule('*/1 * * * *', () => checkPrice(connection));
+  cron.schedule('* * * * *', () => checkPrice(connection));
   cron.schedule('0 0 * * *', () => createSnapshot(connection));
 
   const app = express();
@@ -32,12 +32,16 @@ createConnection({
   const snapshotRepository = connection.getRepository(Snapshot);
   const tradeRepository = connection.getCustomRepository(TradeRepository);
 
+  app.get('/asset-holdings/:assetSymbol', async (req: Request, res: Response) => {
+    res.json(await tradeRepository.findBalance(req.params.assetSymbol));
+  });
+
   app.get('/trades', async (req: Request, res: Response) => {
-    res.json(await tradeRepository.find({ order: { createdAt: 'DESC' } }));
+    res.json(await tradeRepository.find());
   });
 
   app.get('/snapshots', async (req: Request, res: Response) => {
-    res.json(await snapshotRepository.find({ order: { createdAt: 'DESC' } }));
+    res.json(await snapshotRepository.find());
   });
 
   app.listen(80);

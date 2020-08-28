@@ -16,7 +16,7 @@ export async function checkPrice(connection: Connection): Promise<void> {
     const rateToBuy = parseFloat(quote.lowPrice) + ((0.5 / 100) * parseFloat(quote.lowPrice));
     console.log(`XRP is at ${quote.lastPrice}, trying to buy at ${rateToBuy}`);
 
-    if (parseFloat(quote.lastPrice) <= rateToBuy && quote.priceChange > 0) {
+    if (parseFloat(quote.lastPrice) <= rateToBuy) {
       const usdtBalance = (await tradeRepository.findBalance('usdt')).balance;
 
       const trade = new Trade();
@@ -36,7 +36,7 @@ export async function checkPrice(connection: Connection): Promise<void> {
     const rateToSell = (+latestTrade.rate + (0.01 * +latestTrade.rate)) + (+latestTrade.fee / xrpBalance);
     console.log(`XRP is at ${quote.lastPrice}, trying to sell at ${rateToSell}`);
 
-    if (quote.lastPrice >= rateToSell && quote.priceChange < 0) {
+    if (quote.lastPrice >= rateToSell) {
       const trade = new Trade();
       trade.from = 'xrp';
       trade.to = 'usdt';

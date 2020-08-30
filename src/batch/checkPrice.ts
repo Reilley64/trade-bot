@@ -15,20 +15,22 @@ export async function checkPrice(connection: Connection): Promise<void> {
   const mode = (await settingRepository.findOne({ key: 'mode' }));
 
   const valuation = new Valuation();
+  valuation.asset = 'xrp';
   valuation.price = quote.lastPrice;
   valuation.open = quote.openPrice;
   valuation.high = quote.highPrice;
   valuation.low = quote.lowPrice;
-  valuation.close = quote.closePrice;
+  valuation.close = quote.prevClosePrice;
   await valuationRepository.save(valuation);
 
   const valuations = await valuationRepository.find();
+  const momentum = +valuations[valuations.length - 1].price - +valuations[valuations.length - 5].price;
 
   if (mode.value === 'buy') {
-    const rateToBuy = +valuations[valuations.length - 1].low + ((0.5 / 100) * +valuations[valuations.length - 1].low);
+    const rateToBuy = +valuations[valuations.length - 1].low + (0.0075 * +valuations[valuations.length - 1].low);
     console.log(`XRP is at ${valuations[valuations.length - 1].price}, trying to buy at ${rateToBuy}`);
 
-    if (valuations[valuations.length - 1].price <= rateToBuy) {
+    if (valuations[valuations.length - 1].price <= rateToBuy && momentum > 0) {
       const usdtBalance = (await tradeRepository.findBalance('usdt')).balance;
 
       const trade = new Trade();
@@ -48,7 +50,7 @@ export async function checkPrice(connection: Connection): Promise<void> {
     const rateToSell = (+latestTrade.rate + (0.01 * +latestTrade.rate)) + (+latestTrade.fee / xrpBalance);
     console.log(`XRP is at ${valuations[valuations.length - 1].price}, trying to sell at ${rateToSell}`);
 
-    if (valuations[valuations.length - 1].price >= rateToSell) {
+    if (valuations[valuations.length - 1].price >= rateToSell && momentum < 0) {
       const trade = new Trade();
       trade.from = 'xrp';
       trade.to = 'usdt';

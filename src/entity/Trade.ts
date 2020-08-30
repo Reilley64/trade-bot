@@ -19,7 +19,7 @@ export class Trade extends Base {
   @Column('decimal')
   fee: number;
 
-  total(): number {
+  amount(): number {
     return this.quantity / this.rate;
   }
 }
